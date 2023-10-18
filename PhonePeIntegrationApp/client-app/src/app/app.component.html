@@ -1,0 +1,80 @@
+
+
+<div class="content" role="main">
+  <div class="cart-panel">
+    <div *ngIf="cartDetails.length > 0">
+      <table>
+        <tr>
+          <th>Product</th>
+          <th>Quantity</th>
+          <th>Amount</th>
+        </tr>
+        <tr *ngFor="let item of cartDetails">
+          <td>
+            {{item.brand}} - {{item.name}}
+          </td>
+          <td class="quantity">
+            {{item.quantity}}
+          </td>
+          <td>
+            {{product(item.price,item.quantity)}}
+          </td>
+        </tr>
+      </table>
+      <div class="footer">
+        <div class="total">
+          <span><b>Total cart value</b></span>
+          <span><b>{{cartService.getCartSum()}}</b></span>
+        </div>
+        <div class="payment">
+          <span>Pay via: PhonePe</span>
+          <button class="payment-button" id="pay" (click)="createPayment()">
+            <img src="../../assets/phonepe-logo-icon.png" />
+          </button>
+        </div>
+      </div>
+    </div>
+    <div  *ngIf="cartDetails.length == 0">
+      <p>Your cart is empty</p>
+    </div>
+  </div>
+
+  <div>
+    <h1 class="display-4">Welcome</h1>
+    <p>PhonePe Integration Demo</p>
+  </div>
+
+  <div class="container page-wrapper">
+    <div class="page-inner">
+      <div class="row">
+        <div class="el-wrapper" *ngFor ="let product of products">
+          <div class="box-up">
+            <img class="img" src="{{product.imgSrc}}" alt="">
+            <div class="img-info">
+              <div class="info-inner">
+                <span class="p-name">{{product.name}}</span>
+                <span class="p-company">{{product.brand}}</span>
+              </div>
+              <div class="a-size">Available sizes : <span class="size">S , M , L , XL</span></div>
+            </div>
+          </div>
+
+          <div class="box-down">
+            <div class="h-bg">
+              <div class="h-bg-inner"></div>
+            </div>
+
+            <a class="cart" id="myButton" (click)="addToCart(product)">
+              <span class="price">{{product.price}}</span>
+              <span class="add-to-cart">
+                <span class="txt">Add in cart</span>
+              </span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<router-outlet></router-outlet>
