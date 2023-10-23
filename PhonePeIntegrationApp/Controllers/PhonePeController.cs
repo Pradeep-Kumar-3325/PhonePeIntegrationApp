@@ -16,6 +16,9 @@ namespace PhonePeIntegrationApp.Controllers
     public class PhonePeController : ControllerBase
     {
         private PhonePeSettings _phonePeSettings;
+
+        public static List<PaymentResponse> TransactionHistory = new List<PaymentResponse>();
+
         public PhonePeController(IOptions<PhonePeSettings> configuration)
         {
             _phonePeSettings = configuration.Value;
@@ -25,15 +28,17 @@ namespace PhonePeIntegrationApp.Controllers
         [Route("CreatePayment")]
         public async Task<JsonResult> CreatePayment(OrderDetailModel order)
         {
+            string transactionId = Guid.NewGuid().ToString();
+
             var data = new Dictionary<string, object>
             {
                 { "merchantId", _phonePeSettings.MerchentId },
-                { "merchantTransactionId", "MT7850590068188104" },
+                { "merchantTransactionId", transactionId },
                 { "merchantUserId", "MUID123" },
                 { "amount", Convert.ToString(order.OrderAmount * 100) },
-                { "redirectUrl", "http://localhost:4200/"},
+                { "redirectUrl", "http://localhost:4200/payment-status"},
                 { "redirectMode", "REDIRECT"},
-                { "callbackUrl", "http://localhost:4200/" },
+                { "callbackUrl", $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}/PhonePe/Response" },
                 { "mobileNumber", "9999999999" },
                 { "paymentInstrument", new Dictionary<string, string> { { "type", "PAY_PAGE" } } }
             };
@@ -83,6 +88,13 @@ namespace PhonePeIntegrationApp.Controllers
                 // Read and deserialize the response content
                 var responseContent = await response.Content.ReadAsStringAsync();
 
+                PaymentResponse response1 = new PaymentResponse();
+                response1.TransactionId = transactionId;
+                response1.Status = "PAYMENT_SUCCESS";
+                response1.Amount = Convert.ToString(order.OrderAmount);
+
+                TransactionHistory.Add(response1);
+
                 // Return a response
                 return new JsonResult(new { Success = true, Message = "Verification successful", phonepeResponse = responseContent });
             }
@@ -93,7 +105,14 @@ namespace PhonePeIntegrationApp.Controllers
         [Route("Response")]
         public ActionResult PhonePeResponse(string response)
         {
-            return null;
+            return this.Ok(TransactionHistory);
+        }
+
+        [HttpGet]
+        [Route("TransactionDetail")]
+        public ActionResult TransactionDetail()
+        {
+            return this.Ok(TransactionHistory);
         }
 
         static string ComputeSHA256(string s)
